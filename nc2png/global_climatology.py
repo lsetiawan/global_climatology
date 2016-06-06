@@ -270,7 +270,6 @@ class Socat(Glodap):
 
             ds_np = np.array(self.dataset[self.i])
             cyclic_data, cyclic_lon = add_cyclic_point(ds_np, coord=lons_np)
-            print cyclic_lon
 
             da = xr.DataArray(cyclic_data, coords=[lats_np, cyclic_lon], dims=['lat', 'lon'])
 

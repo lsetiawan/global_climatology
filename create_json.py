@@ -37,10 +37,9 @@ class MakeJSON(object):
         self.legend = self.legends()
 
     def getMINMAX(self):
-        fr = open(self.min_max, 'r')
+        fr = open(os.path.join(self.dataset,self.min_max), 'r')
         s = fr.read()
         fr.close()
-
         array = s.split(";")
 
         split = []
@@ -172,37 +171,33 @@ class MakeJSON(object):
         depth2 = []
 
         # Return min max of each depth in an array
-        split = self.GetMINMAX()
+        split = self.getMINMAX()
         print split
 
         for png in os.listdir(self.dataset):
+            self.num = self.num +1
             if ".DS_Store" not in png:
                 spt = png.split("_")
-                if "{}m".format(0) in spt:
-                    for y in range(0, len(self.year)):
-                        for n in range(0, len(split)):
-                            if "{0}.png".format(self.year[y]) in spt and "0m" in split[n] and n == 0:
-                                image_url = os.path.join(self.base_url, png)
-                                values = {
-                                    "min": "{}".format(split[n][1]),
-                                    "max": "{}".format(split[n][2])
-                                }
-                                depth1.append(self.create_json(image_url, values, forecast_start_date=None,
-                                                               forecast_end_date=None, creation_timestamp=None,
-                                                               model_date=None))
+                print spt
+                if spt[1] == '0m.png':
+                    for n in range(0, len(split)):
+                        if n == 0:
+                            image_url = os.path.join(self.base_url, png)
+                            values = {
+                                "min": "{}".format(split[n][1]),
+                                "max": "{}".format(split[n][2])
+                            }
+                            depth1.append(self.create_json(image_url, values))
 
-                elif "{}m".format(200) in spt:
-                    for y in range(0, len(self.year)):
-                        for n in range(0, len(split)):
-                            if "{0}.png".format(self.year[y]) in spt and "200m" in split[n] and n == 9:
-                                image_url = os.path.join(self.base_url, png)
-                                values = {
-                                    "min": "{}".format(split[n][1]),
-                                    "max": "{}".format(split[n][2])
-                                }
-                                depth2.append(self.create_json(image_url, values, forecast_start_date=None,
-                                                               forecast_end_date=None, creation_timestamp=None,
-                                                               model_date=None))
+                if spt[1] == '200m.png':
+                    for n in range(0, len(split)):
+                        if n == 9:
+                            image_url = os.path.join(self.base_url, png)
+                            values = {
+                                "min": "{}".format(split[n][1]),
+                                "max": "{}".format(split[n][2])
+                            }
+                            depth2.append(self.create_json(image_url, values))
                 else:
                     pass
 
@@ -300,7 +295,7 @@ class SocatJSON(MakeJSON):
 
 
 def main():
-    glodap_ds = ['arag_climatology','ph_climatology','tco2_climatology']
+    glodap_ds = ['OmegaA_climatology','pHts25p0_climatology','TCO2_climatology']
     for dataset in glodap_ds:
         #pth = "/media/lsetiawan/main/PycharmProjects/Global_Climatology/{}".format(dataset)
         pth = "./{}".format(dataset)
@@ -310,30 +305,36 @@ def main():
         year = ["7213"]
 
         # Set the min_max text, units, colors, and produce JSON
-        if dataset == "arag_climatology":
+        if dataset == "OmegaA_climatology":
+            print dataset
             var = "aragonite"
-            min_max ='arag_min_max_72_13.txt'
+            min_max ='OmegaA_min_max.txt'
             units = 'Aragonite Saturation State'
             colormap = 'liqing'
-            colorbar = os.path.join(baseurl,'arag_colorbar.png')
+            colorbar = os.path.join(baseurl,'OmegaA_colorbar.png')
             tickmarks = [0, 1, 2, 3, 4, 5]
-            MakeJSON(var, pth, min_max, baseurl, year, units, colormap, colorbar, p, tickmarks)
-        elif dataset == "ph_climatology":
+            glodap = MakeJSON(var, pth, min_max, baseurl, year, units, colormap, colorbar, p, tickmarks)
+            glodap.getJSON()
+        elif dataset == "pHts25p0_climatology":
+            print dataset
             var = "ph"
-            min_max = 'ph_min_max_72_13.txt'
+            min_max = 'pHts25p0_min_max.txt'
             units = 'pH'
             colormap = 'pH'
-            colorbar = os.path.join(baseurl, 'ph_colorbar.png')
+            colorbar = os.path.join(baseurl, 'pHts25p0_colorbar.png')
             tickmarks = [7.7, 7.8, 7.9, 8.0, 8.1, 8.2]
-            MakeJSON(var, pth, min_max, baseurl, year, units, colormap, colorbar, p, tickmarks)
-        elif dataset == "tco2_climatology":
+            glodap = MakeJSON(var, pth, min_max, baseurl, year, units, colormap, colorbar, p, tickmarks)
+            glodap.getJSON()
+        elif dataset == "TCO2_climatology":
+            print dataset
             var = "tco2"
-            min_max = 'tco2_min_max_72_13.txt'
+            min_max = 'TCO2_min_max.txt'
             units = 'Dissolved Inorganic Carbon (μmol/kg)'
             colormap = 'tco2'
-            colorbar = os.path.join(baseurl, 'tco2_colorbar.png')
+            colorbar = os.path.join(baseurl, 'TCO2_colorbar.png')
             tickmarks = [1800, 1880, 1960, 2040, 2120, 2200]
-            MakeJSON(var, pth, min_max, baseurl, year, units, colormap, colorbar, p, tickmarks)
+            glodap = MakeJSON(var, pth, min_max, baseurl, year, units, colormap, colorbar, p, tickmarks)
+            glodap.getJSON()
 
     socat_ds = ['fco2_weighted_climatology', 'fco2_unwtd_climatology']
 
@@ -360,17 +361,17 @@ def main():
             socat = SocatJSON(var, pth, min_max, baseurl, year, units, colormap, colorbar, p=None, tickmarks=tickmarks)
             socat.getJSON()
 
-
+    '''
     ########################################################################################################
     ##### FOR MULTIPLE DEPTH ##################################################################################
-    '''images = imagesURL(p,pth)
+    images = imagesURL(p,pth)
     for i in range(0,len(images)):
         legend = legends()
         year = ["8699","0013","7213"]
         forecast_date, forecast_start_date, forecast_end_date, creation_timestamp, model_date = dates(year[i])
         arag_climatology.append(create_json(forecast_date, model_date, images[i], forecast_end_date,
-                                            creation_timestamp,forecast_start_date,legend))'''
-    #######################################################################################################
+                                            creation_timestamp,forecast_start_date,legend))
+    #######################################################################################################'''
 
 if __name__ == '__main__':
     main()
