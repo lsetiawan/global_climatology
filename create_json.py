@@ -184,8 +184,8 @@ class MakeJSON(object):
                             if "{0}.png".format(self.year[y]) in spt and "0m" in split[n] and n == 0:
                                 image_url = os.path.join(self.base_url, png)
                                 values = {
-                                    "min": "{}".format(split[n][2]),
-                                    "max": "{}".format(split[n][3])
+                                    "min": "{}".format(split[n][1]),
+                                    "max": "{}".format(split[n][2])
                                 }
                                 depth1.append(self.create_json(image_url, values, forecast_start_date=None,
                                                                forecast_end_date=None, creation_timestamp=None,
@@ -197,8 +197,8 @@ class MakeJSON(object):
                             if "{0}.png".format(self.year[y]) in spt and "200m" in split[n] and n == 9:
                                 image_url = os.path.join(self.base_url, png)
                                 values = {
-                                    "min": "{}".format(split[n][2]),
-                                    "max": "{}".format(split[n][3])
+                                    "min": "{}".format(split[n][1]),
+                                    "max": "{}".format(split[n][2])
                                 }
                                 depth2.append(self.create_json(image_url, values, forecast_start_date=None,
                                                                forecast_end_date=None, creation_timestamp=None,
