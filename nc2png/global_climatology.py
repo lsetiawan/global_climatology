@@ -22,6 +22,8 @@ class Glodap(object):
         self.depths = []
         self.my_cmap = None
         self.i = 0
+        self.vmin = None
+        self.vmax = None
         work_file = os.path.join(pth, '{}'.format(ds_name))
 
         print "Working on {}".format(work_file)
@@ -60,17 +62,26 @@ class Glodap(object):
             position = [0, 0.19, 0.19, 0.38, 0.50, 0.62, 0.75, 0.9, 1]
             self.my_cmap = self.make_cmap(colors, position=position, bit=True)
             self.export_colormap('{}_colorbar'.format(self.pre))
+            self.vmin = 0
+            self.vmax = 5
 
         elif self.pre == "pHts25p0" or self.pre == "fco2_ave_weighted_decade" or self.pre == "fco2_ave_unwtd_decade":
             self.my_cmap = 'rainbow'
             self.export_colormap('{}_colorbar'.format(self.pre))
-
+            if self.pre == "pHts25p0":
+                self.vmin = 7.7
+                self.vmax = 8.2
+            else:
+                self.vmin = 240
+                self.vmax = 480
         elif self.pre == "TCO2":
             colors = [(38, 38, 38), (33, 45, 84), (40, 142, 132), (212, 219, 21), (219, 113, 15),
                       (173, 25, 18)]
             position = [0, 0.2, 0.4, 0.6, 0.8, 1]
             self.my_cmap = self.make_cmap(colors, position=position, bit=True)
             self.export_colormap('{}_colorbar'.format(self.pre))
+            self.vmin = 1800
+            self.vmax = 2200
 
     def export_colormap(self,name, *args, **kwargs):
         '''
@@ -150,7 +161,7 @@ class Glodap(object):
         coord = ccrs.PlateCarree()  # aka Lat,Long
 
         # Plots the data
-        da.plot(ax=ax, transform=coord, add_colorbar=False, vmin=0, vmax=5, add_labels=False, cmap=self.my_cmap)
+        da.plot(ax=ax, transform=coord, add_colorbar=False, vmin=self.vmin, vmax=self.vmax, add_labels=False, cmap=self.my_cmap)
         ax.background_patch.set_visible(False)
         ax.outline_patch.set_visible(False)
 
@@ -190,8 +201,6 @@ class Socat(Glodap):
 
     def __init__(self,pth,ds_name,avg_method = 'weighted'):
         super(Socat, self).__init__(pth,ds_name)
-
-        self.j = 0
 
         if not os.path.exists("socat_decade"):
             os.mkdir("socat_decade")
@@ -257,14 +266,13 @@ class Socat(Glodap):
         lons_np, lats_np = self.makeLatLng()
 
         # Processing
-        for self.j in range(0, len(self.names)):
-            for self.i in range(0, len(self.names[self.j])):
+        for self.i in range(0, len(self.names)):
 
-                ds_np = np.array(self.dataset[self.j][self.i])
-                cyclic_data, cyclic_lon = add_cyclic_point(ds_np, coord=lons_np)
-                print cyclic_lon
+            ds_np = np.array(self.dataset[self.i])
+            cyclic_data, cyclic_lon = add_cyclic_point(ds_np, coord=lons_np)
+            print cyclic_lon
 
-                da = xr.DataArray(cyclic_data, coords=[lats_np, cyclic_lon], dims=['lat', 'lon'])
+            da = xr.DataArray(cyclic_data, coords=[lats_np, cyclic_lon], dims=['lat', 'lon'])
 
 
-                self.getPNG(da)
+            self.getPNG(da)
