@@ -22,14 +22,16 @@ class Glodap(object):
         self.depths = []
         self.my_cmap = None
         self.i = 0
-
         work_file = os.path.join(pth, '{}'.format(ds_name))
 
         print "Working on {}".format(work_file)
         self.ds = xr.open_dataset(work_file)
-        self.var_name = ds_name.split(".")
-        self.data = self.ds[self.var_name[2]]
-        self.pre = self.var_name[2]
+
+        if ds_name != 'SOCAT_tracks_gridded_decades_v3.nc':
+            self.var_name = ds_name.split(".")
+            print self.var_name
+            self.data = self.ds[self.var_name[2]]
+            self.pre = self.var_name[2]
 
     def get_dataset(self):
         if not os.path.exists("{}_climatology".format(self.pre)):
@@ -260,7 +262,9 @@ class Socat(Glodap):
 
                 ds_np = np.array(self.dataset[self.j][self.i])
                 cyclic_data, cyclic_lon = add_cyclic_point(ds_np, coord=lons_np)
+                print cyclic_lon
 
                 da = xr.DataArray(cyclic_data, coords=[lats_np, cyclic_lon], dims=['lat', 'lon'])
+
 
                 self.getPNG(da)
